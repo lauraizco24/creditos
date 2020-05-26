@@ -133,4 +133,22 @@ public class ClienteManager {
 
     }
 
+    public Cliente buscarPorIdCliente(int idDeCliente) {
+
+        Session session = sessionFactory.openSession();
+
+        // SQL Injection vulnerability exposed.
+        // Deberia traer solo aquella del nombre y con esto demostrarmos que trae todas
+        // si pasamos
+        // como nombre: "' or '1'='1"
+        Query query = session.createNativeQuery("SELECT * FROM cliente where cliente_id = '" + idDeCliente + "'", Cliente.class);
+
+        Cliente clientesporId = (Cliente) query.getSingleResult();
+
+        return clientesporId;
+
+    }
+
+
+
 }

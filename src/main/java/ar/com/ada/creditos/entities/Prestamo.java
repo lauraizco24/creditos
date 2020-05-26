@@ -74,7 +74,7 @@ public class Prestamo {
 
     public void setCliente(Cliente cliente) {
         this.cliente = cliente;
-        this.cliente.getPrestamos().add(this);//Agrega el prestamo actual a la lista del cliente
+        
     }
 
     public Prestamo() {
@@ -88,6 +88,8 @@ public class Prestamo {
         this.fechaAlta = fechaAlta;
         this.cliente = cliente;
     }
+
+	
 
     
 

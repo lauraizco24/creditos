@@ -5,6 +5,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 
+import javax.swing.text.DateFormatter;
+
 import org.hibernate.exception.ConstraintViolationException;
 
 import ar.com.ada.creditos.entities.*;
@@ -61,7 +63,7 @@ public class ABM {
                         listarPrestamos();
                         break;
                     case 7:
-                        cargarUnPrestamo();
+                        nuevoPrestamo();
                         break;
 
 
@@ -274,10 +276,39 @@ public class ABM {
                 + prestamo.getCuotas() + " Fecha: " + prestamo.getFechaAlta());
 
     }
-
+ public void nuevoPrestamo(){
+     cargarUnPrestamo();
+ }
+    
     public void cargarUnPrestamo(){
         Prestamo prestamo = new Prestamo();
-        
+        System.out.println("Inserte el id del Cliente: ");
+        int idDeCliente = Teclado.nextInt();
+        Teclado.nextLine();
+        prestamo.setCliente(ABMCliente.buscarPorIdCliente(idDeCliente));
+        System.out.println("Inserte el importe del prestamo: ");
+        BigDecimal importe =Teclado.nextBigDecimal();
+        Teclado.nextLine();
+        prestamo.setImporte(importe);
+        System.out.println("Inserte la cantidad de cuotas: ");
+        int cuotas = Teclado.nextInt();
+        Teclado.nextLine();
+        prestamo.setCuotas(cuotas);
+        System.out.println("Inserte la fecha del prestamo: ");
+        System.out.println("Inserte el Año : ");
+        int AnioAlta = Teclado.nextInt();
+        Teclado.nextLine();
+        System.out.println("Inserte el mes : ");
+        int mesAlta  = Teclado.nextInt();
+        Teclado.nextLine();
+        System.out.println("Inserte el Dia : ");
+        int diaAlta = Teclado.nextInt();
+        Teclado.nextLine();
+        prestamo.setFecha(new Date(AnioAlta,mesAlta,diaAlta));
+        prestamo.setFechaAlta(new Date());
+
+        ABMPrestamo.create(prestamo);
+        System.out.println("Prestamo creado con exito");
         
     }
 
@@ -290,6 +321,7 @@ public class ABM {
         System.out.println("4. Para ver el listado.");
         System.out.println("5. Buscar un cliente por nombre especifico(SQL Injection)).");
         System.out.println("6. Listado de Prestamos");
+        System.out.println("7. Agregar un prestamo");
         System.out.println("0. Para terminar.");
         System.out.println("");
         System.out.println("=======================================");
