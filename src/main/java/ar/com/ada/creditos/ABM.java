@@ -1,17 +1,21 @@
 package ar.com.ada.creditos;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 
 import javax.swing.text.DateFormatter;
 
+import com.mysql.cj.x.protobuf.Mysqlx.ClientMessagesOrBuilder;
+
 import org.hibernate.exception.ConstraintViolationException;
 
 import ar.com.ada.creditos.entities.*;
 import ar.com.ada.creditos.excepciones.*;
 import ar.com.ada.creditos.managers.*;
+import ar.com.ada.creditos.services.ReporteService;
 
 public class ABM {
 
@@ -19,6 +23,8 @@ public class ABM {
 
     protected ClienteManager ABMCliente = new ClienteManager();
     protected PrestamoManager ABMPrestamo = new PrestamoManager();
+    protected ReporteService reporteService = new ReporteService(ABMPrestamo);
+    protected CancelacionManager ABMCancelacion = new CancelacionManager();
 
     public void iniciar() throws Exception {
 
@@ -26,6 +32,7 @@ public class ABM {
 
             ABMCliente.setup();
             ABMPrestamo.setup();
+            ABMCancelacion.setup();
 
             printOpciones();
 
@@ -65,7 +72,15 @@ public class ABM {
                     case 7:
                         nuevoPrestamo();
                         break;
-
+                    case 8:
+                        totalPrestamosPorCliente();
+                        break;
+                    case 9:
+                        totalPrestamos();
+                        break;
+                    case 10:
+                        nuevaCancelacion();
+                        break;
 
                     default:
                         System.out.println("La opcion no es correcta.");
@@ -109,13 +124,14 @@ public class ABM {
         if (domAlternativo != null)
             cliente.setDomicilioAlternativo(domAlternativo);
 
-        Prestamo prestamo = new Prestamo();
-        BigDecimal importePrestamo = new BigDecimal(5000);
-        prestamo.setImporte(importePrestamo); // Forma 1
-        prestamo.setFecha(new Date());// Fecha actual de la maquina forma 2
-        prestamo.setCuotas(10);// Le vamos a dar 10 cuotas por defecto
-        prestamo.setFechaAlta(new Date());// Esta fecha la genera la maquina
-        prestamo.setCliente(cliente);
+        /*
+         * Prestamo prestamo = new Prestamo(); BigDecimal importePrestamo = new
+         * BigDecimal(5000); prestamo.setImporte(importePrestamo); // Forma 1
+         * prestamo.setFecha(new Date());// Fecha actual de la maquina forma 2
+         * prestamo.setCuotas(10);// Le vamos a dar 10 cuotas por defecto
+         * prestamo.setFechaAlta(new Date());// Esta fecha la genera la maquina
+         * prestamo.setCliente(cliente);
+         */
 
         ABMCliente.create(cliente);
 
@@ -274,42 +290,125 @@ public class ABM {
 
         System.out.print("Id: " + prestamo.getPrestamoId() + " Importe: " + prestamo.getImporte() + " Cuotas: "
                 + prestamo.getCuotas() + " Fecha: " + prestamo.getFechaAlta());
+        System.out.println("/n");
 
     }
- public void nuevoPrestamo(){
-     cargarUnPrestamo();
- }
-    
-    public void cargarUnPrestamo(){
+
+    public void nuevoPrestamo() {
+        cargarUnPrestamo();
+    }
+
+    public void cargarUnPrestamo() {
         Prestamo prestamo = new Prestamo();
         System.out.println("Inserte el id del Cliente: ");
         int idDeCliente = Teclado.nextInt();
         Teclado.nextLine();
         prestamo.setCliente(ABMCliente.buscarPorIdCliente(idDeCliente));
         System.out.println("Inserte el importe del prestamo: ");
-        BigDecimal importe =Teclado.nextBigDecimal();
+        BigDecimal importe = Teclado.nextBigDecimal();
         Teclado.nextLine();
         prestamo.setImporte(importe);
         System.out.println("Inserte la cantidad de cuotas: ");
         int cuotas = Teclado.nextInt();
         Teclado.nextLine();
         prestamo.setCuotas(cuotas);
-        System.out.println("Inserte la fecha del prestamo: ");
-        System.out.println("Inserte el Año : ");
-        int AnioAlta = Teclado.nextInt();
-        Teclado.nextLine();
-        System.out.println("Inserte el mes : ");
-        int mesAlta  = Teclado.nextInt();
-        Teclado.nextLine();
-        System.out.println("Inserte el Dia : ");
-        int diaAlta = Teclado.nextInt();
-        Teclado.nextLine();
-        prestamo.setFecha(new Date(AnioAlta,mesAlta,diaAlta));
+        /*
+         * System.out.println("Inserte la fecha del prestamo: ");
+         * System.out.println("Inserte el Año : "); int AnioAlta = Teclado.nextInt();
+         * Teclado.nextLine(); System.out.println("Inserte el mes : "); int mesAlta =
+         * Teclado.nextInt(); Teclado.nextLine();
+         * System.out.println("Inserte el Dia : "); int diaAlta = Teclado.nextInt();
+         * Teclado.nextLine(); prestamo.setFecha(new Date(AnioAlta,mesAlta,diaAlta));
+         */
         prestamo.setFechaAlta(new Date());
+        System.out.println("Introduzca la fecha con formato dd/mm/yyyy");
+        String fecha = Teclado.nextLine();
+        SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+        Date testDate = null;
+        String date = fecha;
+        try {
+            testDate = df.parse(date);
+            System.out.println("Ahora hemos creado un objeto date con la fecha indicada, " + testDate);
+        } catch (Exception e) {
+            System.out.println("invalid format");
+        }
+
+        if (!df.format(testDate).equals(date)) {
+            System.out.println("invalid date!!");
+        } else {
+            System.out.println("valid date");
+        }
+        prestamo.setFecha(testDate);
 
         ABMPrestamo.create(prestamo);
         System.out.println("Prestamo creado con exito");
+        System.out.println("Id del Prestamo: " + prestamo.getPrestamoId() + " " + "Importe del Prestamo: "
+                + prestamo.getImporte() + " " + "Id del Cliente: " + prestamo.getCliente().getClienteId() + " "
+                + "DNI del Cliente : " + prestamo.getCliente().getDni());
+
+    }
+
+    public void totalPrestamosPorCliente() {
+        System.out.println("Ingrese el Id Del Cliente: ");
+        int clienteid = Teclado.nextInt();
+        Teclado.nextLine();
+        reporteService.imprimirReportePorCliente(clienteid);
+
+    }
+
+    public void totalPrestamos() {
+        reporteService.imprimirReportePrestamosTotal();
+
+    }
+
+    public void nuevaCancelacion(){
+        System.out.println("Ingrese el Id Del Cliente: ");
+        int clienteid = Teclado.nextInt();
+        Teclado.nextLine();
         
+        System.out.println("Ingrese el Importe de la cuota: ");
+        BigDecimal importe = Teclado.nextBigDecimal();
+        Teclado.nextLine();
+
+        System.out.println("Ingrese la cuota a pagar: ");
+        int cuota = Teclado.nextInt();
+        Teclado.nextLine();
+
+        System.out.println("Ingrese la fecha de Cancelacion en el formato dd/mm/yyyy");
+        String fechaCancelacion = Teclado.nextLine();
+        SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+        Date testDate = null;
+        String date = fechaCancelacion;
+        try {
+            testDate = df.parse(date);
+            System.out.println("");
+        } catch (Exception e) {
+            System.out.println("invalid format");
+        }
+
+        if (!df.format(testDate).equals(date)) {
+            System.out.println("invalid date!!");
+        } else {
+            System.out.println("valid date");
+        }
+
+        System.out.println("Ingrese el id del Prestamo a pagar: ");
+        int prestamoId = Teclado.nextInt();
+        Teclado.nextLine();
+
+
+        Cancelacion cancelacion = new Cancelacion();
+        cancelacion.setCliente(ABMCliente.buscarPorIdCliente(clienteid));
+        cancelacion.setImporte(importe);
+        cancelacion.setCuota(cuota);
+        cancelacion.setFechaCancelacion(testDate);
+        cancelacion.setPrestamo(ABMPrestamo.buscarPorIdPrestamo(prestamoId));
+
+        ABMCancelacion.create(cancelacion);
+    
+        System.out.println("Se ha generado exitosamente una nueva cancelacion");
+
+
     }
 
     public static void printOpciones() {
@@ -322,6 +421,9 @@ public class ABM {
         System.out.println("5. Buscar un cliente por nombre especifico(SQL Injection)).");
         System.out.println("6. Listado de Prestamos");
         System.out.println("7. Agregar un prestamo");
+        System.out.println("8. Reporte de Prestamos por Cliente");
+        System.out.println("9. Reporte Total de Prestamos y cantidad Total de Dinero Prestado");
+        System.out.println("10.Cargar una nueva cancelacion");
         System.out.println("0. Para terminar.");
         System.out.println("");
         System.out.println("=======================================");
