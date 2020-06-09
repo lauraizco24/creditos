@@ -6,15 +6,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 
-import javax.swing.text.DateFormatter;
-
-import com.mysql.cj.x.protobuf.Mysqlx.ClientMessagesOrBuilder;
-
-import org.hibernate.exception.ConstraintViolationException;
-
 import ar.com.ada.creditos.entities.*;
 import ar.com.ada.creditos.excepciones.*;
 import ar.com.ada.creditos.managers.*;
+import ar.com.ada.creditos.services.CancelacionService;
 import ar.com.ada.creditos.services.ReporteService;
 
 public class ABM {
@@ -23,8 +18,10 @@ public class ABM {
 
     protected ClienteManager ABMCliente = new ClienteManager();
     protected PrestamoManager ABMPrestamo = new PrestamoManager();
-    protected ReporteService reporteService = new ReporteService(ABMPrestamo);
     protected CancelacionManager ABMCancelacion = new CancelacionManager();
+    protected ReporteService reporteService = new ReporteService(ABMPrestamo);
+    protected ReporteService reporteServiceC = new ReporteService(ABMCancelacion);
+    protected CancelacionService cancelacionService = new CancelacionService(ABMCancelacion, ABMPrestamo);
 
     public void iniciar() throws Exception {
 
@@ -80,6 +77,19 @@ public class ABM {
                         break;
                     case 10:
                         nuevaCancelacion();
+                        break;
+                    case 11:
+                        eliminarCancelacion();
+                        break;
+
+                    case 12:
+                        listarCancelaciones();
+                        break;
+                    case 13:
+                        listarCancelacionesEliminadas();
+                        break;
+                    case 14:
+                        reporteCancelacionesPorCliente();
                         break;
 
                     default:
@@ -361,11 +371,11 @@ public class ABM {
 
     }
 
-    public void nuevaCancelacion(){
-        System.out.println("Ingrese el Id Del Cliente: ");
-        int clienteid = Teclado.nextInt();
+    public void nuevaCancelacion() {
+        System.out.println("Ingrese el id del Prestamo a pagar: ");
+        int prestamoId = Teclado.nextInt();
         Teclado.nextLine();
-        
+
         System.out.println("Ingrese el Importe de la cuota: ");
         BigDecimal importe = Teclado.nextBigDecimal();
         Teclado.nextLine();
@@ -392,22 +402,33 @@ public class ABM {
             System.out.println("valid date");
         }
 
-        System.out.println("Ingrese el id del Prestamo a pagar: ");
-        int prestamoId = Teclado.nextInt();
+        cancelacionService.generarImprimirCancelacion(prestamoId, importe, cuota, testDate);
+
+    }
+
+    public void eliminarCancelacion() {
+
+        System.out.println("Ingrese el id de la cancelacion: ");
+        int cancelacionId = Teclado.nextInt();
         Teclado.nextLine();
 
+        cancelacionService.eliminarUnaCancelacion(cancelacionId);
+    }
 
-        Cancelacion cancelacion = new Cancelacion();
-        cancelacion.setCliente(ABMCliente.buscarPorIdCliente(clienteid));
-        cancelacion.setImporte(importe);
-        cancelacion.setCuota(cuota);
-        cancelacion.setFechaCancelacion(testDate);
-        cancelacion.setPrestamo(ABMPrestamo.buscarPorIdPrestamo(prestamoId));
+    public void listarCancelaciones() {
 
-        ABMCancelacion.create(cancelacion);
-    
-        System.out.println("Se ha generado exitosamente una nueva cancelacion");
+        reporteServiceC.imprimirReporteCancelaciones();
 
+    }
+
+    public void listarCancelacionesEliminadas() {
+
+        reporteServiceC.listarCancelacionesEliminadas();
+
+    }
+
+    public void reporteCancelacionesPorCliente() {
+        
 
     }
 
@@ -424,6 +445,10 @@ public class ABM {
         System.out.println("8. Reporte de Prestamos por Cliente");
         System.out.println("9. Reporte Total de Prestamos y cantidad Total de Dinero Prestado");
         System.out.println("10.Cargar una nueva cancelacion");
+        System.out.println("11. Eliminar una Cancelacion");
+        System.out.println("12. Imprimir Reporte de Cancelaciones(TOTAL)");
+        System.out.println("13. Reporte de Cancelaciones Eliminadas");
+        System.out.println("14. Reporte de Cancelaciones por Cliente");
         System.out.println("0. Para terminar.");
         System.out.println("");
         System.out.println("=======================================");

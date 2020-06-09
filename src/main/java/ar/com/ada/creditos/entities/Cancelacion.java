@@ -28,11 +28,7 @@ public class Cancelacion {
     private Prestamo prestamo;
     private BigDecimal importe;
     private int cuota;
-
-    @ManyToOne
-    @JoinColumn(name = "prestamo_id", referencedColumnName = "prestamo_id")
-    @JoinColumn(name = "cliente_id", referencedColumnName = "cliente_id")
-    private Cliente cliente;
+    private int eliminado;
 
     public Cancelacion(int cancelacionId, Date fechaCancelacion, Prestamo prestamo, BigDecimal importe, int cuota) {
         this.cancelacionId = cancelacionId;
@@ -85,13 +81,14 @@ public class Cancelacion {
         this.cuota = cuota;
     }
 
-    public Cliente getCliente() {
-        return cliente;
+    public int getEliminado() {
+        return eliminado;
     }
 
-    public void setCliente(Cliente cliente) {
-        this.cliente = cliente;
+    public void setEliminado(int eliminado) {
+        this.eliminado = eliminado;
     }
+
 
 
 

@@ -18,6 +18,7 @@
     <mapping class="ar.com.ada.creditos.entities.reportes.ReportePrestamoPorCliente"/>
     <mapping class="ar.com.ada.creditos.entities.reportes.ReporteDePrestamos"/>
     <mapping class="ar.com.ada.creditos.entities.Cancelacion"/>
+    <mapping class="ar.com.ada.creditos.entities.reportes.ReporteCancelaciones"/>
      
   </session-factory>
 </hibernate-configuration>

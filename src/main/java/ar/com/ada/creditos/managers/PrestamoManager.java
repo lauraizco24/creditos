@@ -101,7 +101,7 @@ public class PrestamoManager {
         Session session = sessionFactory.openSession();
 
         Query queryReportesPorCliente = session.createNativeQuery(
-                "SELECT c.cliente_id, c.nombre, count(*) cantidad, max(p.importe) maximo, sum(p.importe) total FROM cliente c inner join prestamo p on c.cliente_id = p.cliente_id WHERE c.cliente_id = ? group by c.cliente_id, c.nombre",
+                "SELECT c.cliente_id, c.nombre, count(*) cantidad, max(p.importe) maximo, sum(p.importe)  total FROM cliente c inner join prestamo p on c.cliente_id = p.cliente_id WHERE c.cliente_id = ? group by c.cliente_id, c.nombre",
                 ReportePrestamoPorCliente.class);
         queryReportesPorCliente.setParameter(1, clienteid);
 

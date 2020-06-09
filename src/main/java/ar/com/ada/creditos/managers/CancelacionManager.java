@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.logging.Level;
 
 import javax.persistence.Query;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -17,14 +19,10 @@ import ar.com.ada.creditos.entities.Cancelacion;
 import ar.com.ada.creditos.entities.Cliente;
 import ar.com.ada.creditos.entities.Prestamo;
 import ar.com.ada.creditos.entities.reportes.*;
+
 public class CancelacionManager {
-    
 
     protected SessionFactory sessionFactory;
-    protected ClienteManager ABMCliente = new ClienteManager();
-    protected PrestamoManager ABMPrestamo = new PrestamoManager();
-
-    
 
     public void setup() {
 
@@ -89,7 +87,59 @@ public class CancelacionManager {
         session.close();
     }
 
- 
+    public Cancelacion buscarPorIdDeCancelacion(int idDeCancelacion) {
+
+        Session session = sessionFactory.openSession();
+
+        // SQL Injection vulnerability exposed.
+        // Deberia traer solo aquella del nombre y con esto demostrarmos que trae todas
+        // si pasamos
+        // como nombre: "' or '1'='1"
+        Query query = session.createNativeQuery(
+                "SELECT * FROM cancelacion where cancelacion_id = '" + idDeCancelacion + "'", Cancelacion.class);
+
+        Cancelacion cancelacionPorID = (Cancelacion) query.getSingleResult();
+
+        return cancelacionPorID;
+
+    }
+
+    public Boolean eliminacionLogica(int idDeCancelacion) {
+        Session session = sessionFactory.openSession();
+
+        Query query = session.createNativeQuery("Update cancelacion SET eliminado = 1 Where cancelacion_id = ?",
+                Cancelacion.class);
+        query.setParameter(1, idDeCancelacion);
+
+        session.beginTransaction();
+        int modificados = query.executeUpdate();
+        if (modificados == 1) {
+            session.getTransaction().commit();
+            session.close();
+            return true;
+        } else {
+            session.getTransaction().rollback();
+            session.close();
+            return false;
+        }
+
+
+    }
+
+    public List<ReporteCancelaciones> generarReporteDeCancelaciones(){
+
+        Session session = sessionFactory.openSession();
+
+        Query queryReporteCancelaciones = session.createNativeQuery("Select * From cancelacion c",ReporteCancelaciones.class);
+        
+        List<ReporteCancelaciones> reporteDeCancelaciones = queryReporteCancelaciones.getResultList();
+
+        
+
+        return reporteDeCancelaciones;
+        
+    }
+    
 
 
 
